@@ -25,7 +25,7 @@ import java.util.function.Function;
 public class OrderService {
 
     private final OrderRepository orderRespository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     public void placeOrder(OrderRequest orderRequest)
     {
@@ -36,7 +36,7 @@ public class OrderService {
         //Call Inventory Service and check whether the product is in stock or not
         List<String>skuCodes=order.getOrdeLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
 
-        InventoryResponse[] inventoryResponses=webClient.get().uri("http://localhost:8083/api/inventory", uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build()).retrieve().bodyToMono(InventoryResponse[].class).block();
+        InventoryResponse[] inventoryResponses=webClientBuilder.build().get().uri("http://inventory-service/api/inventory", uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build()).retrieve().bodyToMono(InventoryResponse[].class).block();
 
         assert inventoryResponses != null;
         boolean allProductsIsStock= Arrays.stream(inventoryResponses).allMatch(InventoryResponse::isInStock);
