@@ -4,8 +4,12 @@ package com.ecommerce.orderservice.service;
 import com.ecommerce.orderservice.dto.InventoryResponse;
 import com.ecommerce.orderservice.dto.OrderLineItemsDto;
 import com.ecommerce.orderservice.dto.OrderRequest;
+import com.ecommerce.orderservice.exception.InvalidIdException;
+import com.ecommerce.orderservice.exception.OrderNotFoundException;
+import com.ecommerce.orderservice.mapper.OrderLineItemMapper;
 import com.ecommerce.orderservice.model.Order;
 import com.ecommerce.orderservice.model.OrderLineItems;
+import com.ecommerce.orderservice.repository.OrderLineRepository;
 import com.ecommerce.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +30,7 @@ public class OrderService {
 
     private final OrderRepository orderRespository;
     private final WebClient.Builder webClientBuilder;
+    private final OrderLineRepository orderLineRepository;
 
     public String placeOrder(OrderRequest orderRequest)
     {
@@ -57,6 +62,21 @@ public class OrderService {
         orderLineItems.setSkuCode(orderLineItemsDto.getSkuCode());
         orderLineItems.setQuantity(orderLineItemsDto.getQuantity());
         return orderLineItems;
+    }
+
+    public OrderLineItemsDto findOrderLineItem(Long id)
+    {
+        if(id==null)
+        {
+            throw new InvalidIdException("The Id provided is not valid");
+        }
+        OrderLineItems orderLineItems= orderLineRepository.getOrderLineItemsById(id);
+
+        if(orderLineItems==null)
+        {
+            throw new OrderNotFoundException("Order with given id is not present");
+        }
+        return OrderLineItemMapper.orderLineItemsToDto(orderLineItems);
     }
 
 }
